@@ -22,3 +22,6 @@ shopdemo/node_modules/
 shopdemo/.expo/
 shopdemo/android/
 shopdemo/ios/
+
+# Android Studio
+.idea/
