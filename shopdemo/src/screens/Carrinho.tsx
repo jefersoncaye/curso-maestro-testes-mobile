@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { formatarPreco } from '../data/produtos';
@@ -16,6 +16,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Carrinho'>;
 
 export default function Carrinho({ navigation }: Props) {
   const { itens, totalPreco, incrementar, decrementar, removerItem } = useCart();
+  const [mensagem, setMensagem] = useState('');
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleRemover(id: number) {
+    removerItem(id);
+    setMensagem('Produto removido com sucesso!');
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setMensagem(''), 2500);
+  }
 
   function handleFinalizar() {
     navigation.navigate('Checkout');
@@ -38,7 +47,7 @@ export default function Carrinho({ navigation }: Props) {
             style={styles.btnControle}
             testID={`btn-decrementar-${id}`}
             accessibilityLabel={`btn-decrementar-${id}`}
-            onPress={() => decrementar(id)}
+            onPress={() => item.quantidade === 1 ? handleRemover(id) : decrementar(id)}
           >
             <Text style={styles.btnControleTexto}>-</Text>
           </TouchableOpacity>
@@ -55,7 +64,7 @@ export default function Carrinho({ navigation }: Props) {
             style={styles.btnRemover}
             testID={`btn-remover-${id}`}
             accessibilityLabel={`btn-remover-${id}`}
-            onPress={() => removerItem(id)}
+            onPress={() => handleRemover(id)}
           >
             <Text style={styles.btnRemoverTexto}>Remover</Text>
           </TouchableOpacity>
@@ -71,6 +80,14 @@ export default function Carrinho({ navigation }: Props) {
       accessibilityLabel="tela-carrinho"
     >
       <View style={styles.header}>
+        <TouchableOpacity
+          testID="btn-voltar-carrinho"
+          accessibilityLabel="btn-voltar-carrinho"
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.voltarTexto}>← Voltar</Text>
+        </TouchableOpacity>
         <Text style={styles.titulo}>Carrinho</Text>
       </View>
 
@@ -91,6 +108,16 @@ export default function Carrinho({ navigation }: Props) {
           renderItem={renderItem}
           contentContainerStyle={styles.lista}
         />
+      )}
+
+      {mensagem !== '' && (
+        <View
+          style={styles.toast}
+          testID="msg-produto-removido"
+          accessibilityLabel="msg-produto-removido"
+        >
+          <Text style={styles.toastTexto}>{mensagem}</Text>
+        </View>
       )}
 
       <View style={styles.rodape}>
@@ -121,11 +148,15 @@ export default function Carrinho({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f5f5f5' },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     padding: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  voltarTexto: { fontSize: 15, color: '#007AFF', fontWeight: '500' },
   titulo: { fontSize: 20, fontWeight: 'bold', color: '#222' },
   vazioContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   vazioTexto: { fontSize: 16, color: '#888' },
@@ -177,4 +208,14 @@ const styles = StyleSheet.create({
   botaoDesabilitado: { backgroundColor: '#ccc' },
   botaoFinalizarTexto: { color: '#fff', fontSize: 16, fontWeight: '600' },
   textoDesabilitado: { color: '#999' },
+  toast: {
+    backgroundColor: '#c0392b',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  toastTexto: { color: '#fff', fontWeight: '600', fontSize: 15 },
 });

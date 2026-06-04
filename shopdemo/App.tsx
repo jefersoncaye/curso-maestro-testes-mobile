@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { CartProvider } from './src/context/CartContext';
 import Login from './src/screens/Login';
 import Catalogo from './src/screens/Catalogo';
@@ -23,6 +24,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <SafeAreaProvider>
     <CartProvider>
       <NavigationContainer>
         <Stack.Navigator
@@ -38,5 +40,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </CartProvider>
+    </SafeAreaProvider>
   );
 }
