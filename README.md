@@ -4,7 +4,10 @@ Repositório do app **ShopDemo** utilizado no curso de testes mobile com Maestro
 
 ## Download do APK
 
-[**ShopDemo.apk**](https://github.com/jefersoncaye/curso-maestro-testes-mobile/raw/refs/heads/master/ShopDemo.apk) — Android 7.0+ · arm64 · ~44 MB
+[**ShopDemo.apk**](https://github.com/jefersoncaye/curso-maestro-testes-mobile/releases/download/v1.0-inicio/ShopDemo.apk) — Android 7.0+ · arm64 · ~44 MB
+
+> Para baixar o estado inicial do repositório (antes do início do curso):
+> [**v1.0-inicio — Estado inicial**](https://github.com/jefersoncaye/curso-maestro-testes-mobile/releases/tag/v1.0-inicio)
 
 > Para instalar: transfira o arquivo para o celular e abra. Pode ser necessário habilitar **"Instalar de fontes desconhecidas"** nas configurações de segurança do Android.
 
