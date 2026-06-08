@@ -1,15 +1,15 @@
 appId: com.curso.shopdemo
 env:
-    EMAIL: cliente@shopdemo.com
-    SENHA: "123456"
-    PRODUTO_CATALOGO: Smartphone Pro 128GB
-    PRECO_CATALOGO: "1.899,90"
-    PRODUTO_CARRINHO: Fone de Ouvido Bluetooth
-    PRECO_PRODUTO: "159,90"
-    TOTAL_CARRINHO: "159,90"
-    NOME: Jeferson
-    ENDERECO: Rua das Flores, 100
-    CARTAO: "4111-1111-1111-1111"
+    EMAIL: ${EMAIL || "cliente@shopdemo.com"}
+    SENHA: ${SENHA || "123456"}
+    PRODUTO_CATALOGO: '${PRODUTO_CATALOGO || "Smartphone Pro 128GB"}'
+    PRECO_CATALOGO: '${PRECO_CATALOGO || "1.899,90"}'
+    PRODUTO_CARRINHO: ${PRODUTO_CARRINHO || "Fone de Ouvido Bluetooth"}
+    PRECO_PRODUTO: ${PRECO_PRODUTO || "159,90"}
+    TOTAL_CARRINHO: '${TOTAL_CARRINHO || "159,90"}'
+    NOME: ${NOME || "Jeferson"}
+    ENDERECO: ${ENDERECO || "Rua das Flores, 100"}
+    CARTAO: ${CARTAO || "4111-1111-1111-1111"}
 ---
 - launchApp:
     clearState: true
