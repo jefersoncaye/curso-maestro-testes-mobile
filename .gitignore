@@ -1,4 +1,4 @@
-reports/
+/reports
 *.iml
 .gradle
 /local.properties

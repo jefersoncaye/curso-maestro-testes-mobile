@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
 
     steps:
       - name: Checkout do repositorio
@@ -57,3 +60,12 @@ jobs:
         with:
           name: screenshots-maestro
           path: .maestro/screenshots/
+
+      - name: Exibir resultado no Actions
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Maestro Suite
+          path: reports/resultado.xml
+          reporter: java-junit
+          fail-on-error: false
