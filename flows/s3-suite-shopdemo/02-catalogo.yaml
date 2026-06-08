@@ -1,0 +1,32 @@
+appId: com.curso.shopdemo
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: "input-email"
+- inputText: "cliente@shopdemo.com"
+- tapOn:
+    id: "input-senha"
+- inputText: "123456"
+- hideKeyboard
+- tapOn: "btn-entrar"
+- assertVisible: 
+    id: "tela-catalogo"
+- assertVisible: "Smartphone Pro 128GB"
+- tapOn: "Smartphone Pro 128GB"
+- assertVisible:
+    id: "tela-detalhe"
+- assertVisible: "Smartphone Pro 128GB"
+- assertVisible: "R$ 1.899,90"
+- tapOn:
+    id: "btn-voltar"
+- assertVisible: 
+    id: "tela-catalogo"
+- assertNotVisible: "Mochila para Notebook"
+- scrollUntilVisible: 
+    element: "Mochila para Notebook"
+- tapOn: "Mochila para Notebook"
+- assertVisible:
+    id: "tela-detalhe"
+- assertVisible: "Mochila para Notebook"
+- assertVisible: "R$ 189,90"

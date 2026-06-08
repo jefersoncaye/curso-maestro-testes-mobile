@@ -1,0 +1,41 @@
+appId: com.curso.shopdemo
+env:
+    PRODUTO_CARRINHO: ${PRODUTO_CARRINHO || "Fone de Ouvido Bluetooth"}
+    PRECO_PRODUTO: ${PRECO_PRODUTO || "159,90"}
+    TOTAL_CARRINHO: '${TOTAL_CARRINHO || "159,90"}'
+    NOME: ${NOME || "Jeferson"}
+    ENDERECO: ${ENDERECO || "Rua das Flores, 100"}
+    CARTAO: ${CARTAO || "4111-1111-1111-1111"}
+---
+- scrollUntilVisible: 
+    element: ${PRODUTO_CARRINHO}
+    direction: UP
+- tapOn: ${PRODUTO_CARRINHO}
+- tapOn:
+    id: "btn-adicionar"
+- assertVisible: "Produto adicionado com sucesso!"
+- tapOn:
+    id: "btn-ver-carrinho"
+- assertVisible: "R$ ${PRECO_PRODUTO}"
+- assertVisible: "Total: R$ ${TOTAL_CARRINHO}"
+- assertVisible:
+    id: "btn-finalizar"
+    enabled: true
+- tapOn:
+    id: "btn-finalizar"
+- tapOn:
+    id: "input-nome"
+- inputText: ${NOME}
+- tapOn:
+    id: "input-endereco"
+- inputText: ${ENDERECO}
+- tapOn:
+    id: "input-cartao"
+- inputText: ${CARTAO}
+- hideKeyboard
+- tapOn:
+    id: "btn-confirmar"
+- assertVisible: "Pedido confirmado"
+- assertVisible:
+    id: "confirmacao-numero"
+- assertVisible: "Pedido #.*"

@@ -1,0 +1,13 @@
+appId: com.curso.shopdemo
+env:
+    PRODUTO_CATALOGO: '${PRODUTO_CATALOGO || "Smartphone Pro 128GB"}'
+    PRECO_CATALOGO: '${PRECO_CATALOGO || "1.899,90"}'
+---
+- scrollUntilVisible: 
+    element: ${PRODUTO_CATALOGO}
+- tapOn: ${PRODUTO_CATALOGO}
+- assertVisible:
+    id: "tela-detalhe"
+- assertVisible: ${PRODUTO_CATALOGO}
+- assertVisible: "R$ ${PRECO_CATALOGO}"
+- back

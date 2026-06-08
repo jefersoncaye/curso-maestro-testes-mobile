@@ -1,0 +1,43 @@
+appId: com.curso.shopdemo
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: "input-email"
+- inputText: "cliente@shopdemo.com"
+- tapOn:
+    id: "input-senha"
+- inputText: "123456"
+- hideKeyboard
+- tapOn: "btn-entrar"
+- assertVisible: 
+    id: "tela-catalogo"
+- tapOn: "Fone de Ouvido Bluetooth"
+- tapOn:
+    id: "btn-adicionar"
+- assertVisible: "Produto adicionado com sucesso!"
+- tapOn:
+    id: "btn-ver-carrinho"
+- assertVisible: "R$ 159,90"
+- assertVisible: "Total: R$ 159,90"
+- assertVisible:
+    id: "btn-finalizar"
+    enabled: true
+- tapOn:
+    id: "btn-finalizar"
+- tapOn:
+    id: "input-nome"
+- inputText: "Jeferson"
+- tapOn:
+    id: "input-endereco"
+- inputText: "Rua xxxyyyy"
+- tapOn:
+    id: "input-cartao"
+- inputText: "123-456-789"
+- hideKeyboard
+- tapOn:
+    id: "btn-confirmar"
+- assertVisible: "Pedido confirmado"
+- assertVisible:
+    id: "confirmacao-numero"
+- assertVisible: "Pedido #.*"
