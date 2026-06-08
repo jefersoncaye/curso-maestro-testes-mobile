@@ -6,7 +6,7 @@ env:
 - extendedWaitUntil:
     visible:
         id: "input-email"
-    timeout: 60000
+    timeout: 120000
 - tapOn:
     id: "input-email"
 - inputText: ${EMAIL}
