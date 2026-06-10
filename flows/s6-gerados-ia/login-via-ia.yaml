@@ -1,0 +1,31 @@
+appId: com.curso.shopdemo
+---
+- launchApp:
+    clearState: true
+
+- tapOn:
+    id: "input-email"
+- inputText: "cliente@shopdemo.com"
+
+- tapOn:
+    id: "input-senha"
+- inputText: "123456"
+
+- tapOn:
+    id: "btn-entrar"
+
+- extendedWaitUntil:
+    visible:
+      id: "tela-catalogo"
+    timeout: 10000
+
+- assertVisible:
+    id: "tela-catalogo"
+
+- assertVisible: "Catalogo"
+
+- assertVisible:
+    id: "lista-produtos"
+
+- assertVisible:
+    id: "produto-nome-1"
