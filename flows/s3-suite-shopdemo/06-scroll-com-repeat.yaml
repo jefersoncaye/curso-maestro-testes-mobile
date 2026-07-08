@@ -1,0 +1,32 @@
+appId: com.curso.shopdemo
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/login.yaml
+
+# Scroll ate encontrar a Mochila para Notebook (repeat + while)
+- repeat:
+    times: 10
+    while:
+      notVisible:
+        text: "Mochila para Notebook"
+    commands:
+      - scroll
+
+- assertVisible: "Mochila para Notebook"
+- tapOn: "Mochila para Notebook"
+- assertVisible:
+    id: "tela-detalhe"
+- assertVisible: "R$ 189,90"
+
+- tapOn:
+    id: "btn-adicionar"
+
+# Aumenta a quantidade de 1 para 4 unidades (repeat times)
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          id: "btn-incrementar-detalhe"
+
+- assertVisible: "4 no carrinho"

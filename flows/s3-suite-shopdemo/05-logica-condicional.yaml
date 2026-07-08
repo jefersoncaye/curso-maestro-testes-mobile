@@ -1,0 +1,57 @@
+appId: com.curso.shopdemo
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "input-email"
+    timeout: 120000
+
+- tapOn:
+    id: "input-email"
+- inputText: "cliente@shopdemo.com"
+- tapOn:
+    id: "input-senha"
+- inputText: "senha-errada"
+- hideKeyboard
+- tapOn: "btn-entrar"
+
+- runFlow:
+    when:
+      visible:
+        id: "erro-login"
+    commands:
+      - tapOn:
+          id: "input-senha"
+      - eraseText
+      - inputText: "123456"
+      - hideKeyboard
+      - tapOn: "btn-entrar"
+
+- extendedWaitUntil:
+    visible:
+      id: "tela-catalogo"
+    timeout: 40000
+- assertVisible:
+    id: "tela-catalogo"
+
+- tapOn:
+    id: "btn-abrir-carrinho"
+
+- runFlow:
+    when:
+      notVisible:
+        id: "carrinho-vazio"
+    commands:
+      - tapOn:
+          id: "btn-finalizar"
+
+- runFlow:
+    when:
+      visible:
+        id: "carrinho-vazio"
+    commands:
+      - assertVisible:
+          id: "carrinho-vazio"
+      - tapOn:
+          id: "btn-voltar-carrinho"
