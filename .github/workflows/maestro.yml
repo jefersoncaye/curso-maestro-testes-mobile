@@ -40,7 +40,8 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -camera-front none -memory 4096
+          ram-size: 4096M
           disable-animations: true
           script: |
             adb install ShopDemo.apk
