@@ -6,12 +6,22 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+  checks: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
 
     steps:
       - name: Checkout do repositorio
@@ -22,6 +32,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Instalar Maestro
         run: |
@@ -45,8 +60,12 @@ jobs:
           disable-animations: true
           script: |
             adb install ShopDemo.apk
-            mkdir -p reports
-            maestro test --format junit --output reports/resultado.xml flows/s3-suite-shopdemo/
+            mkdir -p reports/debug
+            maestro test --format junit --output reports/resultado.xml --debug-output reports/debug --test-output-dir reports/debug flows/s3-suite-shopdemo/
+
+      - name: Gerar relatorio consolidado
+        if: always()
+        run: node gerar-relatorio.js reports/debug reports/relatorio-consolidado.html
 
       - name: Publicar relatorio JUnit
         uses: actions/upload-artifact@v4
@@ -55,12 +74,39 @@ jobs:
           name: relatorio-maestro
           path: reports/resultado.xml
 
-      - name: Publicar screenshots
+      - name: Publicar debug-output
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: screenshots-maestro
-          path: .maestro/screenshots/
+          name: debug-output-maestro
+          path: reports/debug/
+
+      - name: Preparar site do relatorio
+        if: always()
+        run: |
+          mkdir -p site
+          cp reports/relatorio-consolidado.html site/index.html
+          cp -r reports/debug site/debug
+
+      - name: Configurar Pages
+        if: always()
+        uses: actions/configure-pages@v5
+
+      - name: Publicar artefato do Pages
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publicar no GitHub Pages
+        if: always()
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Link do relatorio no resumo
+        if: always()
+        run: |
+          echo "Relatorio: ${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Exibir resultado no Actions
         uses: dorny/test-reporter@v1
