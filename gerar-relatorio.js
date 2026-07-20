@@ -28,35 +28,39 @@ if (allCommandFiles.length === 0) {
   process.exit(1);
 }
 
-// usa so a run mais recente, ignora runs antigas na mesma pasta
-const byRunDir = {};
+// Nome do flow, compativel com as duas estruturas de debug-output do Maestro:
+// - versoes antigas: uma pasta por run, arquivos commands-(flow).json
+// - versoes novas (CI): uma pasta por flow, arquivo commands.json sem nome
+function flowNameOf(file) {
+  const baseName = path.basename(file).replace(/\.json$/i, '');
+  const m = baseName.match(/^commands-\((.+)\)$/) || baseName.match(/^commands-(.+)$/);
+  if (m) return m[1];
+  const parent = path.basename(path.dirname(file));
+  // pasta de run com timestamp (2026-07-20_190013) nao identifica o flow
+  return /^\d{4}-\d{2}-\d{2}_\d{6}$/.test(parent) ? baseName : parent;
+}
+
+// agrupa por FLOW (nao por pasta) e mantem so o arquivo mais recente de cada um
+const byFlow = {};
 for (const f of allCommandFiles) {
-  const dir = path.dirname(f);
-  (byRunDir[dir] = byRunDir[dir] || []).push(f);
+  const name = flowNameOf(f);
+  const mtime = fs.statSync(f).mtimeMs;
+  if (!byFlow[name] || mtime > byFlow[name].mtime) byFlow[name] = { file: f, mtime };
 }
-const runDirs = Object.keys(byRunDir);
-let latestDir = runDirs[0];
-let latestMtime = -Infinity;
-for (const d of runDirs) {
-  const mtime = Math.max(...byRunDir[d].map((f) => fs.statSync(f).mtimeMs));
-  if (mtime > latestMtime) {
-    latestMtime = mtime;
-    latestDir = d;
-  }
-}
-const commandFiles = byRunDir[latestDir];
-const ignoredRuns = runDirs.filter((d) => d !== latestDir);
+const commandFiles = Object.values(byFlow).map((e) => e.file);
+const ignoredCount = allCommandFiles.length - commandFiles.length;
 
-console.log(`${commandFiles.length} flow(s) em ${path.basename(latestDir)}`);
-if (ignoredRuns.length) {
-  console.log(`${ignoredRuns.length} run(s) anterior(es) ignorada(s)`);
+console.log(`${commandFiles.length} flow(s)`);
+if (ignoredCount) {
+  console.log(`${ignoredCount} arquivo(s) de runs anteriores ignorado(s)`);
 }
 
-const screenshotFiles = allFiles.filter((f) => /\.(png|jpe?g)$/i.test(f) && path.dirname(f) === latestDir);
+const screenshotFiles = allFiles.filter((f) => /\.(png|jpe?g)$/i.test(f));
 
-// maestro.log fica em .maestro/tests/<run>/, casa pelo nome da run
-const latestRunName = path.basename(latestDir);
-const logFile = allFiles.find((f) => path.basename(f) === 'maestro.log' && path.dirname(f).endsWith(latestRunName));
+// maestro.log: usa o mais recente encontrado na arvore
+const logFile = allFiles
+  .filter((f) => path.basename(f) === 'maestro.log')
+  .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
 let envInfo = null;
 if (logFile) {
   try {
@@ -166,10 +170,16 @@ for (const file of commandFiles) {
     continue;
   }
 
-  const baseName = path.basename(file).replace(/\.json$/i, '');
-  const flowName = (baseName.match(/^commands-\((.+)\)$/) || baseName.match(/^commands-(.+)$/) || [null, baseName])[1];
+  const flowName = flowNameOf(file);
 
-  const localShots = screenshotFiles.filter((f) => f.includes(`(${flowName})`));
+  // screenshots: pelo nome (estrutura antiga) ou pela mesma pasta do flow,
+  // desde que o arquivo nao esteja marcado com o nome de outro flow
+  const localShots = screenshotFiles.filter((f) => {
+    if (f.includes(`(${flowName})`)) return true;
+    const sameDir = path.dirname(f) === path.dirname(file);
+    const hasFlowTag = /\(.+\)\.(png|jpe?g)$/i.test(path.basename(f));
+    return sameDir && !hasFlowTag;
+  });
 
   const steps = json
     .map((step) => {
@@ -212,6 +222,8 @@ for (const file of commandFiles) {
 
   flows.push({ name: flowName, steps, counts, duration: flowDuration, error: firstError });
 }
+
+flows.sort((a, b) => a.name.localeCompare(b.name));
 
 const totalFlows = flows.length;
 const failedFlows = flows.filter((f) => f.counts.fail > 0);
