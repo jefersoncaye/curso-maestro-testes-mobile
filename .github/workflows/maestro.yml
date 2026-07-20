@@ -59,64 +59,58 @@ jobs:
           ram-size: 4096M
           disable-animations: true
           script: |
-            set -eu
-
-            echo "Starting adb server (if needed)"
-            adb kill-server || true
-            adb start-server || true
-
-            SERIAL="emulator-5554"
-
-            echo "Waiting for emulator device to be listed by adb..."
-            i=1
-            while [ "$i" -le 120 ]; do
-              if adb -s "$SERIAL" get-state 2>/dev/null | grep -q device; then
-                echo "Emulator is listed as device"
-                break
-              fi
-              echo "Emulator not ready yet (attempt $i/120), sleeping 5s..."
-              sleep 5
-              i=$((i + 1))
-            done
-
-            echo "Waiting for Android boot completed property..."
-            i=1
-            while [ "$i" -le 120 ]; do
-              if adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q 1; then
-                echo "Boot completed"
-                break
-              fi
-              echo "Boot not completed (attempt $i/120), sleeping 5s..."
-              sleep 5
-              i=$((i + 1))
-            done
-
-            echo "Unlocking device and disabling animations"
-            adb -s "$SERIAL" shell input keyevent 82 || true
-            adb -s "$SERIAL" shell settings put global animator_duration_scale 0 || true
-            adb -s "$SERIAL" shell settings put global transition_animation_scale 0 || true
-            adb -s "$SERIAL" shell settings put global window_animation_scale 0 || true
-
-            # Ensure the APK exists
-            if [ ! -f ShopDemo.apk ]; then
-              echo "ERROR: ShopDemo.apk not found. Build it (or include it in the repo) before running this workflow."
-              exit 1
-            fi
-
-            # Retry install a few times
-            echo "Installing APK (with retries)..."
-            for attempt in 1 2 3; do
-              if adb -s "$SERIAL" install -r ShopDemo.apk; then
-                echo "APK installed"
-                break
-              fi
-              echo "Install attempt $attempt failed, sleeping 5s..."
-              sleep 5
-            done
-
-            mkdir -p reports/debug
-            echo "Starting Maestro tests..."
-            maestro test --format junit --output reports/resultado.xml --debug-output reports/debug --test-output-dir reports/debug flows/s3-suite-shopdemo/
+            printf '%s\n' \
+              'set -eu' \
+              'echo "Starting adb server (if needed)"' \
+              'adb kill-server || true' \
+              'adb start-server || true' \
+              'SERIAL="emulator-5554"' \
+              'echo "Waiting for emulator device to be listed by adb..."' \
+              'i=1' \
+              'while [ "$i" -le 120 ]; do' \
+              '  if adb -s "$SERIAL" get-state 2>/dev/null | grep -q device; then' \
+              '    echo "Emulator is listed as device"' \
+              '    break' \
+              '  fi' \
+              '  echo "Emulator not ready yet (attempt $i/120), sleeping 5s..."' \
+              '  sleep 5' \
+              '  i=$((i + 1))' \
+              'done' \
+              'echo "Waiting for Android boot completed property..."' \
+              'i=1' \
+              'while [ "$i" -le 120 ]; do' \
+              '  if adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q 1; then' \
+              '    echo "Boot completed"' \
+              '    break' \
+              '  fi' \
+              '  echo "Boot not completed (attempt $i/120), sleeping 5s..."' \
+              '  sleep 5' \
+              '  i=$((i + 1))' \
+              'done' \
+              'echo "Unlocking device and disabling animations"' \
+              'adb -s "$SERIAL" shell input keyevent 82 || true' \
+              'adb -s "$SERIAL" shell settings put global animator_duration_scale 0 || true' \
+              'adb -s "$SERIAL" shell settings put global transition_animation_scale 0 || true' \
+              'adb -s "$SERIAL" shell settings put global window_animation_scale 0 || true' \
+              'if [ ! -f ShopDemo.apk ]; then' \
+              '  echo "ERROR: ShopDemo.apk not found. Build it (or include it in the repo) before running this workflow."' \
+              '  exit 1' \
+              'fi' \
+              'echo "Installing APK (with retries)..."' \
+              'attempt=1' \
+              'while [ "$attempt" -le 3 ]; do' \
+              '  if adb -s "$SERIAL" install -r ShopDemo.apk; then' \
+              '    echo "APK installed"' \
+              '    break' \
+              '  fi' \
+              '  echo "Install attempt $attempt failed, sleeping 5s..."' \
+              '  sleep 5' \
+              '  attempt=$((attempt + 1))' \
+              'done' \
+              'mkdir -p reports/debug' \
+              'echo "Starting Maestro tests..."' \
+              'maestro test --format junit --output reports/resultado.xml --debug-output reports/debug --test-output-dir reports/debug flows/s3-suite-shopdemo/' \
+            | bash -s
 
       - name: Gerar relatorio consolidado
         if: always()
