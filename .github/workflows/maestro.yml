@@ -59,7 +59,8 @@ jobs:
           ram-size: 4096M
           disable-animations: true
           script: |
-            set -euo pipefail
+            set -eu
+            IFS=$'\n\t'
 
             echo "Starting adb server (if needed)"
             adb kill-server || true
