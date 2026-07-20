@@ -60,7 +60,6 @@ jobs:
           disable-animations: true
           script: |
             set -eu
-            IFS=$'\n\t'
 
             echo "Starting adb server (if needed)"
             adb kill-server || true
@@ -69,23 +68,27 @@ jobs:
             SERIAL="emulator-5554"
 
             echo "Waiting for emulator device to be listed by adb..."
-            for i in $(seq 1 120); do
+            i=1
+            while [ "$i" -le 120 ]; do
               if adb -s "$SERIAL" get-state 2>/dev/null | grep -q device; then
                 echo "Emulator is listed as device"
                 break
               fi
               echo "Emulator not ready yet (attempt $i/120), sleeping 5s..."
               sleep 5
+              i=$((i + 1))
             done
 
             echo "Waiting for Android boot completed property..."
-            for i in $(seq 1 120); do
+            i=1
+            while [ "$i" -le 120 ]; do
               if adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q 1; then
                 echo "Boot completed"
                 break
               fi
               echo "Boot not completed (attempt $i/120), sleeping 5s..."
               sleep 5
+              i=$((i + 1))
             done
 
             echo "Unlocking device and disabling animations"
@@ -102,12 +105,12 @@ jobs:
 
             # Retry install a few times
             echo "Installing APK (with retries)..."
-            for i in 1 2 3; do
+            for attempt in 1 2 3; do
               if adb -s "$SERIAL" install -r ShopDemo.apk; then
                 echo "APK installed"
                 break
               fi
-              echo "Install attempt $i failed, sleeping 5s..."
+              echo "Install attempt $attempt failed, sleeping 5s..."
               sleep 5
             done
 
