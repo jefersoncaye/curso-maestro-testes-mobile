@@ -20,6 +20,3 @@ env:
     visible:
         id: "tela-catalogo"
     timeout: 40000
-
-- assertVisible: 
-    id: "tela-catalogo"

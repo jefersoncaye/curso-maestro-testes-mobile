@@ -195,18 +195,32 @@ for (const file of commandFiles) {
       );
   });
 
+  // rastreia screenshots ja usados NESTE flow, pra nao anexar a mesma imagem
+  // em dois passos diferentes (ex: runFlowCommand + o passo real que falhou)
+  const usedShots = new Set();
+
   const steps = json
     .map((step) => {
       const type = Object.keys(step.command)[0];
       const body = step.command[type];
       const status = step.metadata?.status || 'UNKNOWN';
       const isFail = statusClass(status) === 'fail';
+      // runFlowCommand so espelha o erro/estado do passo que realmente falhou
+      // dentro do subflow, entao nao anexa screenshot nem repete a mensagem
+      // de erro aqui, senao duplica os dois (imagem e texto) no relatorio.
+      const isRunFlowWrapper = type === 'runFlowCommand';
       let shot = null;
-      if (isFail && localShots.length) {
+      if (isFail && !isRunFlowWrapper && localShots.length) {
         const target = step.metadata?.timestamp ?? 0;
-        shot = [...localShots].sort(
+        // prioriza screenshot ainda nao usado por outro passo falho deste flow
+        // (evita anexar a mesma imagem duas vezes quando duas asserções falham
+        // em sequencia, ex: extendedWaitUntil seguido de assertVisible redundante)
+        const disponiveis = localShots.filter((f) => !usedShots.has(f));
+        const candidatos = disponiveis.length ? disponiveis : localShots;
+        shot = [...candidatos].sort(
           (a, b) => Math.abs((screenshotTimestamp(a) ?? 0) - target) - Math.abs((screenshotTimestamp(b) ?? 0) - target)
         )[0];
+        if (shot) usedShots.add(shot);
       }
       return {
         sequenceNumber: step.metadata?.sequenceNumber ?? 0,
@@ -214,7 +228,9 @@ for (const file of commandFiles) {
         label: humanLabel(type, body),
         duration: step.metadata?.duration ?? null,
         timestamp: step.metadata?.timestamp ?? 0,
-        error: extractError(step),
+        // idem: nao repete o texto do erro no wrapper runFlowCommand, o passo
+        // real ja mostra a mensagem completa logo abaixo
+        error: isRunFlowWrapper ? null : extractError(step),
         screenshot: shot ? path.relative(path.dirname(outPath), shot).split(path.sep).join('/') : null,
       };
     })
