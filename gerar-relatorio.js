@@ -199,18 +199,39 @@ for (const file of commandFiles) {
   // em dois passos diferentes (ex: runFlowCommand + o passo real que falhou)
   const usedShots = new Set();
 
+  // janelas de tempo de wrappers (retryCommand, runFlowCommand) que no final
+  // terminaram OK. Uma tentativa que falhou dentro dessas janelas foi
+  // recuperada pelo proprio Maestro (ex: retry conseguiu na 2a tentativa) e
+  // nao deve contar como falha real do flow.
+  const successfulWrapperWindows = [];
+  for (const step of json) {
+    const wType = Object.keys(step.command)[0];
+    if ((wType === 'retryCommand' || wType === 'runFlowCommand') && statusClass(step.metadata?.status) === 'ok') {
+      const start = step.metadata?.timestamp ?? 0;
+      const duration = step.metadata?.duration ?? 0;
+      successfulWrapperWindows.push({ start, end: start + duration });
+    }
+  }
+  function shadowedByRecovery(timestamp) {
+    return successfulWrapperWindows.some((w) => timestamp >= w.start && timestamp <= w.end);
+  }
+
   const steps = json
     .map((step) => {
       const type = Object.keys(step.command)[0];
       const body = step.command[type];
       const status = step.metadata?.status || 'UNKNOWN';
       const isFail = statusClass(status) === 'fail';
-      // runFlowCommand so espelha o erro/estado do passo que realmente falhou
-      // dentro do subflow, entao nao anexa screenshot nem repete a mensagem
-      // de erro aqui, senao duplica os dois (imagem e texto) no relatorio.
-      const isRunFlowWrapper = type === 'runFlowCommand';
+      // runFlowCommand e retryCommand so espelham o erro/estado do passo que
+      // realmente falhou dentro deles, entao nao anexam screenshot nem repetem
+      // a mensagem de erro aqui, senao duplica os dois no relatorio.
+      const isWrapperCommand = type === 'runFlowCommand' || type === 'retryCommand';
+      // uma tentativa que falhou mas foi recuperada por um retry bem sucedido
+      // continua aparecendo como falha NESTE passo (e correto mostrar que essa
+      // tentativa especifica falhou), mas nao conta pro resultado do flow
+      const recovered = isFail && !isWrapperCommand && shadowedByRecovery(step.metadata?.timestamp ?? 0);
       let shot = null;
-      if (isFail && !isRunFlowWrapper && localShots.length) {
+      if (isFail && !isWrapperCommand && !recovered && localShots.length) {
         const target = step.metadata?.timestamp ?? 0;
         // prioriza screenshot ainda nao usado por outro passo falho deste flow
         // (evita anexar a mesma imagem duas vezes quando duas asserções falham
@@ -228,17 +249,23 @@ for (const file of commandFiles) {
         label: humanLabel(type, body),
         duration: step.metadata?.duration ?? null,
         timestamp: step.metadata?.timestamp ?? 0,
-        // idem: nao repete o texto do erro no wrapper runFlowCommand, o passo
-        // real ja mostra a mensagem completa logo abaixo
-        error: isRunFlowWrapper ? null : extractError(step),
+        // idem: nao repete o texto do erro no wrapper, nem numa tentativa
+        // recuperada por retry (o passo real ja mostra a mensagem completa,
+        // ou nem chega a ser um problema porque o retry deu certo depois)
+        error: isWrapperCommand || recovered ? null : extractError(step),
         screenshot: shot ? path.relative(path.dirname(outPath), shot).split(path.sep).join('/') : null,
+        // continua exibindo o icone de falha neste passo especifico (a
+        // tentativa realmente falhou), mas nao conta pro resultado do flow
+        recovered,
       };
     })
     .sort((a, b) => a.sequenceNumber - b.sequenceNumber);
 
   const counts = steps.reduce(
     (acc, s) => {
-      acc[statusClass(s.status)]++;
+      // uma tentativa recuperada por retry nao deve contar como falha do
+      // flow, mesmo que o icone do passo continue mostrando que ela falhou
+      acc[s.recovered ? 'ok' : statusClass(s.status)]++;
       return acc;
     },
     { ok: 0, fail: 0, skipped: 0, unknown: 0 }
@@ -281,15 +308,17 @@ const flowBlocks = flows
     const shotsForFlow = [];
     const stepsHtml = flow.steps
       .map((s) => {
-        const cls = statusClass(s.status);
+        const cls = s.recovered ? 'recovered' : statusClass(s.status);
         if (s.screenshot) {
           shotsForFlow.push({ src: encodePath(s.screenshot), caption: s.label });
         }
         const errHtml = s.error ? `<div class="err">${esc(s.error)}</div>` : '';
+        const recoveredTag = s.recovered ? '<span class="tag-recovered">recuperado pelo retry</span>' : '';
         return `
         <div class="step ${cls}">
           <span class="icon">${statusIcon(s.status)}</span>
           <span class="label">${esc(s.label)}</span>
+          ${recoveredTag}
           <span class="dur">${fmtDuration(s.duration)}</span>
         </div>${errHtml}`;
       })
@@ -359,6 +388,8 @@ const html = `<!DOCTYPE html>
   .step .dur { color:#999; font-size:11px; min-width:40px; text-align:right; }
   .step.fail .label { color:var(--fail); }
   .step.skipped .label { color:#888; }
+  .step.recovered .label { color:#8a6d00; }
+  .tag-recovered { font-size:10px; color:#8a6d00; background:#fff4d6; padding:1px 6px; border-radius:8px; }
   .err { margin:2px 0 6px 26px; padding:6px 8px; background:#fde7e7; color:#7a0000; border-radius:5px; font-family:monospace; font-size:11px; white-space:pre-wrap; }
   .shots { position:sticky; top:16px; }
   .shots a { display:block; }
