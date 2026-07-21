@@ -244,6 +244,14 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
+function encodePath(relPath) {
+  // encodeURI nao escapa "?", "(" e outros caracteres que podem aparecer
+  // no nome do arquivo (inclusive o "?" que o Java grava no lugar de emoji
+  // quando o runner do CI nao tem locale UTF-8, ex: LANG vazio). Escapa
+  // segmento por segmento pra nao mexer nas barras do caminho.
+  return relPath.split('/').map(encodeURIComponent).join('/');
+}
+
 const flowBlocks = flows
   .map((flow, fi) => {
     const hasFail = flow.counts.fail > 0;
@@ -255,7 +263,7 @@ const flowBlocks = flows
       .map((s) => {
         const cls = statusClass(s.status);
         if (s.screenshot) {
-          shotsForFlow.push({ src: encodeURI(s.screenshot), caption: s.label });
+          shotsForFlow.push({ src: encodePath(s.screenshot), caption: s.label });
         }
         const errHtml = s.error ? `<div class="err">${esc(s.error)}</div>` : '';
         return `
