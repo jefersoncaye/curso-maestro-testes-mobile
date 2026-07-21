@@ -14,7 +14,7 @@ appId: com.curso.shopdemo
 - inputText: "cliente@shopdemo.com"
 - tapOn:
     id: "input-senha"
-- inputText: "12345"
+- inputText: "123456"
 - hideKeyboard
 - tapOn: "btn-entrar"
 
