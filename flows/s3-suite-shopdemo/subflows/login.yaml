@@ -3,10 +3,15 @@ env:
     EMAIL: ${EMAIL || "cliente@shopdemo.com"}
     SENHA: ${SENHA || "123456"}
 ---
-- extendedWaitUntil:
-    visible:
-        id: "input-email"
-    timeout: 120000
+- retry:
+    maxRetries: 2
+    commands:
+      - launchApp:
+          clearState: true
+      - extendedWaitUntil:
+          visible:
+            id: "input-email"
+          timeout: 60000
 - tapOn:
     id: "input-email"
 - inputText: ${EMAIL}

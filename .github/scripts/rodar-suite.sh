@@ -51,6 +51,12 @@ fi
 
 mkdir -p reports/debug
 
+echo "==> Iniciando captura de logcat em segundo plano..."
+adb -s "$SERIAL" logcat -c
+adb -s "$SERIAL" logcat -v time > reports/debug/logcat.txt &
+LOGCAT_PID=$!
+trap 'kill "$LOGCAT_PID" 2>/dev/null || true' EXIT
+
 echo "==> Rodando a suite Maestro..."
 maestro test \
   --format junit \

@@ -1,7 +1,5 @@
 appId: com.curso.shopdemo
 ---
-- launchApp:
-    clearState: true
 - runFlow: subflows/login.yaml
 - assertVisible: "Smartphone Pro 128GB"
 - tapOn: "Smartphone Pro 128GB"

@@ -1,7 +1,5 @@
 appId: com.curso.shopdemo
 ---
-- launchApp:
-    clearState: true
 - runFlow: subflows/login.yaml
 - tapOn: "Fone de Ouvido Bluetooth"
 - tapOn:

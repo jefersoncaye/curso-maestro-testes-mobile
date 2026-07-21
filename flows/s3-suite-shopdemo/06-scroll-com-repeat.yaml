@@ -1,7 +1,5 @@
 appId: com.curso.shopdemo
 ---
-- launchApp:
-    clearState: true
 - runFlow: subflows/login.yaml
 
 # Scroll ate encontrar a Mochila para Notebook (repeat + while)
