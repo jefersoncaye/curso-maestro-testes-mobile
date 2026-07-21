@@ -29,11 +29,11 @@ jobs:
       - name: Instalar Node
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '20'
 
       - name: Instalar Maestro
         run: |
-          curl -Ls "https://get.maestro.mobile.dev" | bash
+          curl -Ls "https://get.maestro.mobile.dev" | bash -s 2.6.0
           echo "$HOME/.maestro/bin" >> $GITHUB_PATH
 
       - name: Habilitar KVM
