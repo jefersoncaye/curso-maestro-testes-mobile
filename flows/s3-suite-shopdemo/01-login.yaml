@@ -14,14 +14,14 @@ appId: com.curso.shopdemo
 - inputText: "cliente@shopdemo.com"
 - tapOn:
     id: "input-senha"
-- inputText: "123456"
+- inputText: "12345"
 - hideKeyboard
 - tapOn: "btn-entrar"
 
 - extendedWaitUntil:
     visible:
         id: "tela-catalogo"
-    timeout: 40000
+    timeout: 4000
 
 - assertVisible: 
     id: "tela-catalogo"
