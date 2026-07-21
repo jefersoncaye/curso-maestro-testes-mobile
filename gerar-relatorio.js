@@ -24,8 +24,18 @@ const allFiles = walk(rootDir);
 const allCommandFiles = allFiles.filter((f) => /commands.*\.json$/i.test(path.basename(f)));
 
 if (allCommandFiles.length === 0) {
-  console.error(`Nenhum commands-*.json encontrado dentro de "${rootDir}".`);
-  process.exit(1);
+  console.log(`Nenhum commands-*.json encontrado dentro de "${rootDir}". Gerando pagina de aviso.`);
+  const aviso = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Relatorio de Testes</title></head>
+<body style="font-family:sans-serif;padding:40px;">
+<h1>Sem resultados neste run</h1>
+<p>A suite nao chegou a gerar arquivos de debug. Verifique os logs do workflow no GitHub Actions.</p>
+</body>
+</html>`;
+  fs.mkdirSync(path.dirname(outPath) || '.', { recursive: true });
+  fs.writeFileSync(outPath, aviso, 'utf-8');
+  process.exit(0);
 }
 
 // Nome do flow, compativel com as duas estruturas de debug-output do Maestro:
