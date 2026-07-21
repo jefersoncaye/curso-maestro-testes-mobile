@@ -184,11 +184,15 @@ for (const file of commandFiles) {
 
   // screenshots: pelo nome (estrutura antiga) ou pela mesma pasta do flow,
   // desde que o arquivo nao esteja marcado com o nome de outro flow
+  const flowDir = path.dirname(file);
+
   const localShots = screenshotFiles.filter((f) => {
-    if (f.includes(`(${flowName})`)) return true;
-    const sameDir = path.dirname(f) === path.dirname(file);
-    const hasFlowTag = /\(.+\)\.(png|jpe?g)$/i.test(path.basename(f));
-    return sameDir && !hasFlowTag;
+      const relative = path.relative(flowDir, f);
+
+      return (
+          !relative.startsWith("..") &&
+          !path.isAbsolute(relative)
+      );
   });
 
   const steps = json
